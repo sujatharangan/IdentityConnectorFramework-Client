@@ -24,6 +24,8 @@ import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.OperationOptionInfo;
 import org.identityconnectors.framework.common.objects.Schema;
 
+import util.ICFClientUtil;
+
 /*
  * Discovers ICF Connector Bundle.
  * Prints Configuration properties, Schema (with meta data), Object classes defined, supported operations and OperationOptions.
@@ -52,7 +54,7 @@ public class LocalBundleDiscovery {
 		{
 			discoveryClient.printGeneralConnectorInfo(ci);
 			discoveryClient.printConfigurationProperties(ci);
-			ConnectorFacade connector = discoveryClient.createConnectorFacade(ci);
+			ConnectorFacade connector = ICFClientUtil.createConnectorFacade(ci);
 			discoveryClient.printSchema(connector);
 		}
 		System.out.println("----------------------------------");
@@ -71,71 +73,6 @@ public class LocalBundleDiscovery {
 		System.out.println("\nIs connection pooling supported ? " +apiConfig.isConnectorPoolingSupported());
 	}
 	
-	public static ConnectorFacade createConnectorFacade(ConnectorInfo ci)
-	{
-		System.out.println("\n============Creating ConnectorFacade ==================");
-		
-		APIConfiguration apiConfig = ci.createDefaultAPIConfiguration();
-
-		//Set all required properties needed by the connector
-		ConfigurationProperties configProps = apiConfig.getConfigurationProperties();		
-		
-		// IMPORTANT: This section should be updated with the values for the actual target.
-		switch(ci.getConnectorDisplayName()) {
-		case "Generic Unix Connector":
-			configProps.setPropertyValue("host","");
-			configProps.setPropertyValue("port", 22);
-			configProps.setPropertyValue("loginUser", "");
-			configProps.setPropertyValue("loginUserpassword", new GuardedString("".toCharArray()));				
-			configProps.setPropertyValue("sudoAuthorization", false);
-			//configProps.setPropertyValue("loginShellPrompt", "#");
-			configProps.setPropertyValue("commandTimeout", 3600);
-			break;
-		case "Flat File Connector" :
-			configProps.setPropertyValue("schemaFile", "/tmp/flatfiles");
-			break;
-		case "Database User Management Connector":
-			String jdbcUrl = "jdbc:oracle:thin:@"+ ":" + "5521"+ ":" + "sampledb";
-			configProps.setPropertyValue("jdbcUrl",jdbcUrl);
-			configProps.setPropertyValue("loginPassword",new GuardedString("".toCharArray()));
-			configProps.setPropertyValue("loginUser","sys as sysdba");
-			configProps.setPropertyValue("dbType","Oracle");
-			break;
-		case "Domino Connector":
-			configProps.setPropertyValue("registrationServer", "something");
-			configProps.setPropertyValue("adminPassword", new GuardedString("changeit".toCharArray()));
-			configProps.setPropertyValue("administrationServer", "something");
-			configProps.setPropertyValue("userDatabaseName", "something");
-			configProps.setPropertyValue("adminName", "something");
-			configProps.setPropertyValue("adminIdFile", "something");
-			configProps.setPropertyValue("mailFileAction", new Integer(0));
-			break;
-		case "GoogleApps Connector":
-			configProps.setPropertyValue("connectionUrl", "");
-			configProps.setPropertyValue("domain", "");
-			configProps.setPropertyValue("login", "");
-			configProps.setPropertyValue("password", new GuardedString("".toCharArray()));
-			configProps.setPropertyValue("proxyHost", "");
-			configProps.setPropertyValue("proxyPort", 80);
-			break;
-		case "Database Table Connector":
-			configProps.setPropertyValue("host", "");
-			configProps.setPropertyValue("port", "5521");
-			configProps.setPropertyValue("user", "");
-			configProps.setPropertyValue("password", new GuardedString("".toCharArray()));
-			configProps.setPropertyValue("database", "");
-			configProps.setPropertyValue("table", "");
-			configProps.setPropertyValue("keyColumn", "");
-			break;
-		}		
-
-		ConnectorFacade connector =   ConnectorFacadeFactory.getInstance().newInstance(apiConfig);
-		//connector.validate();
-		connector.test();
-		System.out.println("Done testing successfully ....");
-		return connector;
-		
-	}
 	public void printConfigurationProperties(ConnectorInfo ci)
 	{
 		System.out.println("\n==============Configuration Properties defined============= \n");
